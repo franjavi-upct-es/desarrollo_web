@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AuthLayout from "../../components/layouts/AuthLayout";
 import {Link, useNavigate} from 'react-router-dom';
 import Input from "../../components/Inputs/Input";
+import {validateEmail} from "../../utils/helper.js";
 
 const Login = () => {
 	const [email, setEmail] = useState("");
@@ -14,7 +15,22 @@ const Login = () => {
 	    console.log("Login page mounted");
 	}, []);
     
-    const handleLogin = async (e) => {}
+    const handleLogin = async (e) => {
+	e.preventDefault();
+
+	if (!validateEmail(email)) {
+	    setError("Introduce un correo válido.")
+	    return;
+	}
+	if (!password) {
+	    setError("Introduce la contraseña")
+	    return;
+	}
+
+	setError("");
+
+	// Login API call
+    }
 
     return (
 	<AuthLayout>
@@ -36,7 +52,7 @@ const Login = () => {
 		    <Input
 			value={password}
 			onChange={({ target }) => setPassword(target.value)}
-			label="Password"
+			label="Contraseña"
 			placeholder="Min 8 caracteres"
 			type="password"
 		    />
@@ -44,13 +60,13 @@ const Login = () => {
 		    {error && <p className="text-red-500 text-xs pb-2.5">{error}</p>}
 
 		    <button type="submit" className="btn-primary">
-				LOGIN
+			Iniciar sesión
 		    </button>
 
-		    <p className="text-[23px] text-slate-800 mt-3">
+		    <p className="text-[13px] text-slate-800 mt-3">
 			¿Aún no te has registrado?{" "}
 			<Link className="font-medium text-primary underline" to="/signup">
-			    SignUp
+			    Registrate
 			</Link>
 		    </p>
 		</form>
@@ -59,7 +75,4 @@ const Login = () => {
     )
 }
 
-useEffect(() => {
-  console.log("Login page mounted");
-}, []);
 export default Login;

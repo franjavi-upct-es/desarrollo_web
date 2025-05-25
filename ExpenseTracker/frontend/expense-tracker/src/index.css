@@ -24,5 +24,5 @@
 }
 
 .btn-primary {
-    @apply w-full text-sm font-medium text-white bg-violet-50  shadow-lg shadow-purple-600/5 p-[10px] rounded-md my-1 hover:text-purple-600;
+    @apply w-full text-sm font-medium text-white bg-violet-500  shadow-lg shadow-purple-600/5 p-[10px] rounded-md my-1 hover:text-purple-600 hover:bg-purple-600/15;
 }
