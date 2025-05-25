@@ -24,7 +24,7 @@ const AuthLayout = ({ children }) => {
 		/>
 	    </div>
 
-	    <div className="w-64 lg:w-[90%] h-64 absolute bottom-10 shadow-lg shadow-blue-400/15 bg-white rounded-xl p-4">
+	    <div className="w-64 lg:w-[90%] h-128 absolute bottom-10 shadow-lg shadow-blue-400/15 bg-white rounded-xl p-4">
 		    <TransactionsChart />
 	    </div>
 

@@ -31,7 +31,7 @@ const TransactionsChart = () => {
           y: {
             stacked: true,
             ticks: { stepSize: 50 },
-            suggestedMax: 400,
+            suggestedMax: 300,
           },
         },
         plugins: {
