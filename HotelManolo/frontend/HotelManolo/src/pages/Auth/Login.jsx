@@ -37,9 +37,18 @@ const Login = () => {
                     Introduce tus datos para iniciar sesión
                 </p>
 
-                <form>
+                <form onSubmit={handleLogin}>
+                    <Input
+                        value={email}
+                        onChange={({ target }) => setDni(target.value)}
+                        label="DNI"
+                        placeholder="12345678A"
+                        type="text"
+                    />
                 </form>
             </div>
         </AuthLayout>
     )
 }
+
+export default Login;
