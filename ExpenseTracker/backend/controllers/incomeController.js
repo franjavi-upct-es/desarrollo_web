@@ -13,7 +13,7 @@ exports.addIncome = async (req, res) => {
             return res.status(400).json({ message: "Hay que rellenar todos los campos" });
         }
 
-        const newIcome = new Income({
+        const newIncome = new Income({
             userId,
             icon,
             source,
@@ -21,8 +21,8 @@ exports.addIncome = async (req, res) => {
             date: new Date(date)
         });
 
-        await newIcome.save();
-        res.status(200).json(newIcome);
+        await newIncome.save();
+        res.status(200).json(newIncome);
     } catch (error) {
         res.status(500).json({ message: "Error en el servidor" });
     }
@@ -67,7 +67,7 @@ exports.downloadIncomeExcel = async (req, res) => {
         const wb = xlsx.utils.book_new();
         const ws = xlsx.utils.json_to_sheet(data);
         xlsx.utils.book_append_sheet(wb, ws, "Income");
-        xlsx.writeFile(wv, 'detalles_ingresos.xlsx');
+        xlsx.writeFile(wb, 'detalles_ingresos.xlsx');
         res.download('detalles_ingresos.xlsx');
     } catch (error) {
         res.status(500).json({ message: "Error en el servidor" });
