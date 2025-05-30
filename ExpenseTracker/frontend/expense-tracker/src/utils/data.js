@@ -22,7 +22,7 @@ export const SIDE_MENU_DATA = [
         id: "03",
         label: "Gastos",
         icon: LuHandCoins,
-        path: "expense",
+        path: "/expense",
     },
     {
         id: "06",
