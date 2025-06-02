@@ -46,7 +46,7 @@ exports.getDashboardData = async (req, res) => {
         );
 
         // Fetch last 5 transactions (income + expense)
-        const lastTransactins = [
+        const lastTransactions = [
             ...(await Income.find({ userId }).sort({ date: -1 }).limit(5)).map(
                 (txn) => ({
                     ...txn.toObject(),
@@ -66,7 +66,8 @@ exports.getDashboardData = async (req, res) => {
             totalBalance:
                 (totalIncome[0]?.total || 0) - (totalExpense[0]?.total || 0),
             totalIncome: totalIncome[0]?.total || 0,
-            totalExpenses: totalExpense[0]?.total || 0,
+            totalExpense: totalExpense[0]?.total || 0,
+            recentTransactions: lastTransactions,
             last30DaysExpenses: {
                 total: expensesLast30Days,
                 transactions: last30DaysExpenseTransactions,
