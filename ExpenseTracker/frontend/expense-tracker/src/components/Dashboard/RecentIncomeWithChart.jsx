@@ -18,7 +18,7 @@ const RecentIncomeWithChart = ({ data, totalIncome }) => {
   useEffect(() => {
     prepareChartData();
 
-    return () => { ; }
+    return () => {};
   }, [data]);
 
   return (

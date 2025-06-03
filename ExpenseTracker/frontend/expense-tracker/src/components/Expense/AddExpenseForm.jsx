@@ -2,33 +2,33 @@ import { useState, useEffect } from "react"
 import Input from "../Inputs/Input"
 import EmojiPickerPopup from "../EmojiPickerPopup";
 
-const AddIncomeForm = ({ onAddIncome }) => {
-  const [income, setIncome] = useState({
+const AddExpenseForm = ({ onAddExpense }) => {
+  const [expense, setExpense] = useState({
     category: "",
     amount: "",
     date: "",
     icon: "",
   })
 
-  const handleChange = (key, value) => setIncome({ ...income, [key]: value });
+  const handleChange = (key, value) => setExpense({ ...expense, [key]: value });
 
   return (
     <div>
       <EmojiPickerPopup
-        icon={income.icon}
+        icon={expense.icon}
         onSelect={(selectedIcon) => handleChange("icon", selectedIcon)}
-        categoryText={income.category} // Pasamos el texto del concepto para selección automática
+        categoryText={expense.category} // Pasamos el texto del concepto para selección automática
       />
 
       <Input
-        value={income.category}
+        value={expense.category}
         onChange={({ target }) => handleChange("category", target.value)}
-        label="Freelance, Salario, etc."
+        label="Cenas, Sueldos, etc."
         type="text"
       />
 
       <Input
-        value={income.amount}
+        value={expense.amount}
         onChange={({ target }) => handleChange("amount", target.value)}
         label="Cantidad"
         placeholder=""
@@ -36,7 +36,7 @@ const AddIncomeForm = ({ onAddIncome }) => {
       />
 
       <Input
-        value={income.date}
+        value={expense.date}
         onChange={({ target }) => handleChange("date", target.value)}
         label="Fecha"
         placeholder=""
@@ -46,13 +46,13 @@ const AddIncomeForm = ({ onAddIncome }) => {
         <button
           type="button"
           className="add-btn add-btn-fill"
-          onClick={() => onAddIncome(income)}
+          onClick={() => onAddExpense(expense)}
         >
-          Añadir Ingreso
+          Añadir Gasto
         </button>
       </div>
     </div>
   )
 }
 
-export default AddIncomeForm
+export default AddExpenseForm

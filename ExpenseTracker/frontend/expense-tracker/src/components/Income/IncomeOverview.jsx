@@ -9,23 +9,24 @@ const IncomeOverview = ({ transactions, onAddIncome }) => {
 
   useEffect(() => {
     const result = prepareIncomeBarChartData(transactions);
+    setCharData(result);
 
     return () => { };
-  }, [transactions])
+  }, [transactions]);
 
   return (
     <div className="card">
       <div className="flex items-center justify-between">
         <div className="">
-          <h5 className="text-lg">Income Overview</h5>
+          <h5 className="text-lg">Resumen de Ingresos</h5>
           <p className="text-xs text-gray-400 mt-0.5">
-            Track your earnings over time and analyze your income trends.
+            Realiza un seguimiento de tus ganancias a lo largo del tiempo y analiza tus tendencias de ingresos.
           </p>
         </div>
 
         <button className="add-btn" onClick={onAddIncome}>
           <LuPlus className="text-lg" />
-          Add Income
+          Añadir Ingreso
         </button>
       </div>
 
