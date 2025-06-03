@@ -36,12 +36,13 @@ const CustomPieChart = ({
       <Tooltip content={<CustomTooltip />} />
       <Legend content={<CustomLegend />} />
 
+      {/* Texto central como SVG, hijo directo de PieChart */}
       {showTextAnchor && (
-        <>
+        <g>
           <text
             x="50%"
             y="50%"
-            dy={-25}
+            dy="-18"
             textAnchor="middle"
             fill="#666"
             fontSize="14px"
@@ -51,15 +52,15 @@ const CustomPieChart = ({
           <text
             x="50%"
             y="50%"
-            dy={8}
+            dy="18"
             textAnchor="middle"
             fill="#333"
             fontSize="24px"
-            fontWeight="semi-bold"
+            fontWeight="bold"
           >
             {totalAmount}
           </text>
-        </>
+        </g>
       )}
     </PieChart>
   </ResponsiveContainer>

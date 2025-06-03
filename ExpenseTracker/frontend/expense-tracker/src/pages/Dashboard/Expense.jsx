@@ -48,7 +48,7 @@ const Expense = () => {
     const { category, amount, date, icon } = expense;
 
     if (!category.trim()) {
-      toast.error("La categoría es requerida")
+      toast.error("Categoría es requerida")
       return;
     }
 
@@ -58,7 +58,7 @@ const Expense = () => {
     }
 
     if (!date) {
-      toast.error("La fecha es requerida")
+      toast.error("Fecha es requerida")
       return;
     }
 
@@ -78,7 +78,6 @@ const Expense = () => {
         "Error añadiendo el gasto:",
         error.response?.data?.message || error.message
       );
-      toast.error("Error añadiendo el gasto. Inténtalo de nuevo.");
     }
   };
 
@@ -94,7 +93,6 @@ const Expense = () => {
       console.error("Error eliminando el gasto:",
         error.response?.data?.message || error.message
       );
-      toast.error("Error eliminando el gasto. Inténtalo de nuevo.");
     }
   };
 
