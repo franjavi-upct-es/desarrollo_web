@@ -4,7 +4,7 @@ import EmojiPickerPopup from "../EmojiPickerPopup";
 
 const AddIncomeForm = ({ onAddIncome }) => {
   const [income, setIncome] = useState({
-    category: "",
+    source: "",
     amount: "",
     date: "",
     icon: "",
@@ -17,12 +17,12 @@ const AddIncomeForm = ({ onAddIncome }) => {
       <EmojiPickerPopup
         icon={income.icon}
         onSelect={(selectedIcon) => handleChange("icon", selectedIcon)}
-        categoryText={income.category} // Pasamos el texto del concepto para selección automática
+        sourceText={income.source} // Pasamos el texto del concepto para selección automática
       />
 
       <Input
-        value={income.category}
-        onChange={({ target }) => handleChange("category", target.value)}
+        value={income.source}
+        onChange={({ target }) => handleChange("source", target.value)}
         label="Freelance, Salario, etc."
         type="text"
       />

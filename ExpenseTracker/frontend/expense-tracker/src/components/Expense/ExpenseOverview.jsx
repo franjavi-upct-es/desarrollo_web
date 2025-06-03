@@ -1,16 +1,15 @@
 import { LuPlus } from "react-icons/lu";
 import CustomLineChart from "../Charts/CustomLineChart.jsx";
 import { useEffect, useState } from "react";
-import { prepareExpenseBarChartData } from "../../utils/helper";
+import { prepareExpenseLineChartData } from "../../utils/helper";
 
 const ExpenseOverview = ({ transactions, onAddExpense }) => {
 
   const [charData, setCharData] = useState([])
 
   useEffect(() => {
-    const result = prepareExpenseBarChartData(transactions);
+    const result = prepareExpenseLineChartData(transactions);
     setCharData(result);
-
     return () => { };
   }, [transactions]);
 
