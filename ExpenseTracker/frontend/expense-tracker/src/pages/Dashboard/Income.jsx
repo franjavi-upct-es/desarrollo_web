@@ -97,7 +97,29 @@ const Income = () => {
   };
 
   // Handle download income details 
-  const handleDownloadIncomeDetails = async () => { };
+  const handleDownloadIncomeDetails = async () => { 
+    try {
+      const response = await axiosInstance.get(
+        API_PATHS.INCOME.DOWNLOAD_INCOME,
+        {
+          responseType: 'blob',
+        }
+      );
+
+      // Crear un enlace temporal para descargar el archivo
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'ingresos.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al descargar los detalles de los ingresos:", error);
+      toast.error("Error al descargar los detalles de los ingresos. Inténtalo de nuevo.");
+    }
+  };
 
   useEffect(() => {
     fetchIncomeDetails();
