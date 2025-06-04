@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  body {
+    background-color: #f9f9f9;
+    overflow-x: hidden;
+  }
+}
+
+
+.input-box {
+  @apply w-full flex justify-between items-center text-sm bg-slate-100 rounded px-4 py-3 mb-4 mt-3 border border-slate-200 outline-none;
+}
+
+.btn-primary {
+  @apply w-full text-sm font-medium text-white bg-violet-500 shadow p-[10px] rounded-md hover:bg-violet-600;
+}
+
