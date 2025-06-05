@@ -1,11 +1,9 @@
 import fs from "fs";
-import path from "path";
 import FormData from "form-data";
 import axios from "axios";
 import Albaran from "../models/Albaran.js";
-import { error } from "console";
 
-export const processPdfs = async (req, res) => {
+export const processPdf = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No se recibió ningún PDF" });

@@ -4,12 +4,15 @@ import axiosInstance from "../../utils/axiosInstance";
 import Input from "../../components/Inputs/Input";
 import AuthLayout from "../../components/Layouts/AuthLayout";
 import toast from "react-hot-toast";
+import { useContext } from "react";
+import { UserContext } from "../../context/UserContext";
 
 const Login = () => {
   const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("")
   const navigate = useNavigate();
+  const { setUserData } = useContext(UserContext);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,6 +25,11 @@ const Login = () => {
       const res = await axiosInstance.post("/api/v1/auth/login", { dni, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("nombreUsuario", res.data.nombre);
+      setUserData({
+        nombre: res.data.nombre,
+        isAuthenticated: true,
+        stats: null,
+      });
       toast.success("Sessión iniciada correctamente");
       navigate("/dashboard");
     } catch (err) {
@@ -32,7 +40,7 @@ const Login = () => {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleLogin} className="w-full">
+      <form onSubmit={handleLogin} className="w-full max-w-sm">
         <h3 className="text-xl font-semibold mb-4">Iniciar Sesión</h3>
 
         <Input

@@ -1,9 +1,14 @@
 import express from "express";
-import { upload } from "../middleware/uploadMiddleware";
-import { processPdf } from "../controllers/pdfController";
+import { upload } from "../middleware/uploadMiddleware.js"
+import { listLastPDFs, processPdf } from "../controllers/pdfController.js";
+import { authenticate } from "../middleware/authMiddleware.js"
 
 const router = express.Router();
 
-router.post("/add", upload.single("pdf"), processPdf);
+// POST /api/v1/pdfs/add
+router.post("/add", authenticate, upload.single("pdf"), processPdf);
+
+// GET /api/v1/pdfs/list
+router.get("/list", authenticate, listLastPDFs);
 
 export default router;

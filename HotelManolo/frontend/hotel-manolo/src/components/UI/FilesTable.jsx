@@ -1,9 +1,4 @@
-const mockData = [
-  { nombre: "factura_001.pdf", albaran: "A2512345", fecha: "2025-06-04", url: "#" },
-  { nombre: "factura_002.pdf", albaran: "AA2512345", fecha: "2025-06-03", url: "#" },
-]
-
-const FilesTable = () => {
+const FilesTable = ({ archivos = [], onVerPDF, formatDate }) => {
   return (
     <div className="mt-6">
       <h3 className="text-lg font-semibold mb-3">Últimos archivos</h3>
@@ -17,13 +12,25 @@ const FilesTable = () => {
           </tr>
         </thead>
         <tbody>
-          {mockData.map((file, idx) => (
+          {archivos.length === 0 && (
+            <tr>
+              <td colSpan={4} className="p-4 text-center text-gray-500">
+                No hay datos procesados
+              </td>
+            </tr>
+          )}
+          {archivos.map((file, idx) => (
             <tr key={idx}>
               <td className="p-2 border">{file.nombre}</td>
               <td className="p-2 border">{file.albaran}</td>
-              <td className="p-2 border">{file.fecha}</td>
+              <td className="p-2 border">{formatDate(file.fecha)}</td>
               <td className="p-2 border">
-                <a href={file.url} target="_blank" rel="noneferrer" className="text-blue-600 underline">Abrir</a>
+                <button
+                  onClick={() => onVerPDF(file.url)}
+                  className="text-blue-600 underline"
+                >
+                  Abrir
+                </button>
               </td>
             </tr>
           ))}
