@@ -1,6 +1,0 @@
-Flask
-pdf2image
-pytesseract
-Pillow
-werkzeug
-numpy
