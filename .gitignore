@@ -48,4 +48,7 @@ eslintcache
 # archivos de configuración específicos de herramientas que no necesitas compartir
 *.local
 flask_ocr/
+uploads/
+__pychache__/
+*.pyc
 .env

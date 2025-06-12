@@ -3,23 +3,27 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
+    "dev:frontend": "react-scripts start",
+    "dev:backend": "cd ../backend && . flask_ocr/bin/activate && FLASK_APP=flask_ocr_service.py flask run --port=5001"
   },
-  "dependencies": {
-    "axios": "^1.4.0",
-    "chart.js": "^4.4.0",
+    "dependencies": {
+    "axios": "^0.27.2",
+    "chart.js": "^3.9.1",
+    "exceljs": "^4.3.0",
+    "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
     "react": "^18.2.0",
-    "react-chartjs-2": "^5.2.0",
+    "react-chartjs-2": "^4.3.1",
     "react-dom": "^18.2.0",
-    "react-scripts": "^0.0.0"
+    "react-icons": "^4.4.0",
+    "react-scripts": "5.0.1"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.2"
+    "autoprefixer": "^10.4.7",
+    "concurrently": "^7.3.0",
+    "postcss": "^8.4.14",
+    "tailwindcss": "^3.1.4"
   },
   "browserslist": {
     "production": [

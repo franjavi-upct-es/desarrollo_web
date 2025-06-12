@@ -1,44 +1,67 @@
 import axios from "axios";
-import { useState } from "react"
+import { useState } from "react";
 
 const PDFUploader = ({ onSuccess }) => {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = e => {
-    setFile(e.target.files[0]);
+    setFiles(Array.from(e.target.files));
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
+
     const formData = new FormData();
-    formData.append("pdf", file);
+    files.forEach(f => formData.append("pdf", f));
 
     setLoading(true);
     try {
-      await axios.post(
+      const res = await axios.post(
         "http://localhost:5001/extract-albaran",
-        formData
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
+
+      const success = res.data.filter(r => !r.error);
+      const failed = res.data.filter(r => r.error);
+
+      if (success.length > 0) {
+        alert(`✅ ${success.length} albarán(es) procesado(s) correctamente.`);
+      }
+      if (failed.length > 0) {
+        alert(
+          `⚠️ ${failed.length} archivo(s) con error:\n` +
+          failed.map(f => `${f.filename}: ${f.error}`).join("\n")
+        );
+      }
+
       onSuccess();
+      setFiles([]);
     } catch {
-      alert("Error al procesar PDF");
+      alert("❌ Error general al procesar PDF(s)");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <label className="w-64 h-64 bg-blue-100 border-4 border-dashed border-blue-400 flex items-center justify-center text-center rounded-xl cursor-pointer">
+    <div className="flex flex-col items-center space-y-4 w-full">
+      <label className="min-w-96 min-h-80 border-4 border-dashed border-blue-400 rounded-xl flex items-center justify-center cursor-pointer bg-blue-50">
         <input
           type="file"
           accept="application/pdf"
+          multiple
           className="hidden"
           onChange={handleChange}
         />
-        {file ? file.name : "Ingresar nuevo PDF"}
+        <span className="text-lg text-center">
+          {files.length > 0
+            ? `${files.length} archivo(s) seleccionado(s)`
+            : "Añadir Albaránes"}
+        </span>
       </label>
+
       <button
         onClick={handleUpload}
         disabled={loading}
@@ -47,7 +70,7 @@ const PDFUploader = ({ onSuccess }) => {
         {loading ? "Procesando..." : "Procesar"}
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default PDFUploader
+export default PDFUploader;
