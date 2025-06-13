@@ -47,25 +47,27 @@ const PDFUploader = ({ onSuccess }) => {
 
   return (
     <div className="flex flex-col items-center space-y-4 w-full">
-      <label className="min-w-96 min-h-80 border-4 border-dashed border-blue-400 rounded-xl flex items-center justify-center cursor-pointer bg-blue-50">
-        <input
-          type="file"
-          accept="application/pdf"
-          multiple
-          className="hidden"
-          onChange={handleChange}
-        />
-        <span className="text-lg text-center">
-          {files.length > 0
-            ? `${files.length} archivo(s) seleccionado(s)`
-            : "Añadir Albaránes"}
-        </span>
+      <label className="min-w-96 min-h-80 border-4 border-dashed border-blue-400 rounded-xl flex items-center justify-center cursor-pointer">
+        <label className="flex bg-blue-300 dark:bg-blue-100 rounded-xl items-center min-h-60 min-w-72 justify-center">
+          <input
+            type="file"
+            accept="application/pdf"
+            multiple
+            className="hidden"
+            onChange={handleChange}
+          />
+          <span className="text-lg text-center">
+            {files.length > 0
+              ? `${files.length} archivo(s) seleccionado(s)`
+              : "Añadir Albaránes"}
+          </span>
+        </label>
       </label>
 
       <button
         onClick={handleUpload}
         disabled={loading}
-        className="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700 disabled:opacity-50"
+        className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? "Procesando..." : "Procesar"}
       </button>

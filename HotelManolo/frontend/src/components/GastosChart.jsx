@@ -1,3 +1,4 @@
+// src/components/GastosChart.jsx
 import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import ExcelJS from "exceljs";
@@ -14,6 +15,17 @@ import { FiDownload } from "react-icons/fi";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+// helper to get ISO week number
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(
+    date.getFullYear(), date.getMonth(), date.getDate()
+  ));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
 export default function GastosChart({ albaranes }) {
   const [granularity, setGranularity] = useState("year");
   const years = Array.from(
@@ -21,7 +33,7 @@ export default function GastosChart({ albaranes }) {
   ).sort((a, b) => b - a);
   const [selYear, setSelYear] = useState(years[0] || new Date().getFullYear());
   const months = [
-    "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+    "Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"
   ];
   const [selMonth, setSelMonth] = useState(0); // 0 = Ene
 
@@ -54,6 +66,16 @@ export default function GastosChart({ albaranes }) {
         filtered.filter(a =>
           new Date(a.timestamp).getDate() === Number(day)
         ).length
+      );
+    }
+    else if (granularity === "week") {
+      // group by ISO week
+      const weekNums = Array.from(
+        new Set(filtered.map(a => getWeekNumber(new Date(a.timestamp))))
+      ).sort((a,b) => a - b);
+      labels = weekNums.map(w => `Semana ${w}`);
+      counts = weekNums.map(w =>
+        filtered.filter(a => getWeekNumber(new Date(a.timestamp)) === w).length
       );
     }
 
@@ -111,6 +133,7 @@ export default function GastosChart({ albaranes }) {
           >
             <option value="year">Año</option>
             <option value="month">Mes</option>
+            <option value="week">Semana</option>
           </select>
           <select
             className="p-2 border rounded bg-gray-100 dark:bg-gray-700"
