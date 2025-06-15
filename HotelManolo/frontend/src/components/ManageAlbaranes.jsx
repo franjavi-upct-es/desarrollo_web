@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import MainLayout from "./MainLayout";
+import { FaRegEye } from "react-icons/fa";
+import AlbaranModal from "./AlbaranModal";
 
 const months = [
   "Enero", "Febrero", "Marzo", "Abril",
@@ -13,6 +15,10 @@ export default function ManageAlbaranes({ onLogout }) {
   const [yearFilter, setYearFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [selected, setSelected] = useState(new Set());
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [current, setCurrent] = useState(null);
 
   useEffect(() => {
     fetchAlbaranes();
@@ -131,11 +137,29 @@ export default function ManageAlbaranes({ onLogout }) {
                 <td className="p-2">
                   {new Date(a.timestamp).toLocaleString()}
                 </td>
+                <td className="p-2 text-center">
+                  <button
+                    onClick={() => {
+                      setCurrent(a);
+                      setModalOpen(true)
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <FaRegEye />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {modalOpen && current && (
+        <AlbaranModal
+          albaran={current}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </MainLayout>
   );
 }
