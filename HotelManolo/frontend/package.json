@@ -6,7 +6,8 @@
   "scripts": {
     "start": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev:frontend": "DANGEROUSLY_DISABLE_HOST_CHECK=true HOST=0.0.0.0 react-scripts start",
-    "dev:backend": "cd ../backend && . flask_ocr/bin/activate && FLASK_APP=flask_ocr_service.py flask run --port=5001"
+    "dev:backend": "cd ../backend && . flask_ocr/bin/activate && FLASK_APP=flask_ocr_service.py flask run --port=5001",
+    "build": "react-scripts build"
   },
   "dependencies": {
     "axios": "^0.27.2",

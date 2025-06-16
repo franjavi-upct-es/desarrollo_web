@@ -16,20 +16,18 @@ from werkzeug.utils import secure_filename
 # Carga .env
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="build", static_url_path="/")
 
 # Genera una nueva clave secreta para cada inicio:
-app.secret_key = os.urandom(24)
-
-app.secret_key = os.getenv("FLASK_SECRET_KEY")
-CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
+app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
+CORS(app, supports_credentials=True, origins=["*"])
 
 # Carpeta de uploads
 UPLOAD_FOLER = "uploads"
 os.makedirs(UPLOAD_FOLER, exist_ok=True)
 
 # MongoDB
-mongo_uri = os.getenv("MONGO_URI")
+mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/albaranesdb")
 client = MongoClient(mongo_uri)
 db = client.get_default_database()
 albaranes = db["albaranes"]
@@ -54,7 +52,12 @@ def auth_required(f):
     return wrapper
 
 
-@app.route("/login", methods=["POST"])
+# ------------------------
+# API Routes (all prefixed with /api)
+# ------------------------
+
+
+@app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json()
     user = data.get("username")
@@ -65,7 +68,13 @@ def login():
     return jsonify({"error": "Credenciales incorrectas"}), 403
 
 
-@app.route("/extract-albaran", methods=["POST"])
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    session.pop("user", None)
+    return jsonify({"msg": "Logout exitoso"})
+
+
+@app.route("/api/extract-albaran", methods=["POST"])
 @auth_required
 def extract_albaran():
     archivos = request.files.getlist("pdf")
@@ -82,7 +91,8 @@ def extract_albaran():
             text = extract_text_from_pdf(pdf_path)
             albaran_id = extract_info(text)
             if not albaran_id:
-                resultados.append({"filename": filename, "error": "ID no encontrado"})
+                resultados.append(
+                    {"filename": filename, "error": "ID no encontrado"})
                 continue
 
             rec = {
@@ -106,11 +116,12 @@ def extract_albaran():
     return jsonify(resultados)
 
 
-@app.route("/albaranes", methods=["GET"])
+@app.route("/api/albaranes", methods=["GET"])
 @auth_required
 def get_albaranes():
     docs = list(
-        albaranes.find({}, {"_id": 1, "albaranId": 1, "filename": 1, "timestamp": 1})
+        albaranes.find({}, {"_id": 1, "albaranId": 1,
+                       "filename": 1, "timestamp": 1})
     )
     result = []
     for doc in docs:
@@ -125,7 +136,7 @@ def get_albaranes():
     return jsonify(result)
 
 
-@app.route("/albaranes/<string:albaran_id>", methods=["DELETE"])
+@app.route("/api/albaranes/<string:albaran_id>", methods=["DELETE"])
 @auth_required
 def delete_albaran(albaran_id):
     from bson import ObjectId
@@ -163,6 +174,20 @@ def serve_upload(filename):
     return send_from_directory(UPLOAD_FOLER, filename)
 
 
+# ------------------------
+# Fallback route for React
+# ------------------------
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    target = Path(app.static_folder) / path
+    if target.exists():
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
+
+
 def extract_text_from_pdf(pdf_path):
     images = convert_from_path(str(pdf_path), dpi=300)
     full_text = ""
@@ -183,4 +208,4 @@ def extract_info(text):
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5000)

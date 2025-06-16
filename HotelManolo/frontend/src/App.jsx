@@ -6,7 +6,7 @@ import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import ManageAlbaranes from "./components/ManageAlbaranes";
 
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || "http://localhost:5001";
+axios.defaults.baseURL = "/api";
 axios.defaults.withCredentials = true;
 
 export default function App() {
