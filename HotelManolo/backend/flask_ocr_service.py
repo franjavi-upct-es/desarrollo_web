@@ -92,8 +92,7 @@ def extract_albaran():
             text = extract_text_from_pdf(pdf_path)
             albaran_id = extract_info(text)
             if not albaran_id:
-                resultados.append(
-                    {"filename": filename, "error": "ID no encontrado"})
+                resultados.append({"filename": filename, "error": "ID no encontrado"})
                 continue
 
             rec = {
@@ -121,8 +120,7 @@ def extract_albaran():
 @auth_required
 def get_albaranes():
     docs = list(
-        albaranes.find({}, {"_id": 1, "albaranId": 1,
-                       "filename": 1, "timestamp": 1})
+        albaranes.find({}, {"_id": 1, "albaranId": 1, "filename": 1, "timestamp": 1})
     )
     return jsonify(
         [
@@ -197,4 +195,5 @@ def extract_info(text):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port)
