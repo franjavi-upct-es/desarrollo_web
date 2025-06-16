@@ -1,11 +1,11 @@
 # ---------- 1. Build React frontend ----------
 FROM node:18 AS frontend
 
+# In Dockerfile
+COPY ./frontend/package*.json ./frontend/
 WORKDIR /app
-COPY frontend/package*.json ./  # copy package.json
-RUN npm install
-COPY frontend ./                # copy all frontend code
-RUN npm run build
+COPY ./frontend/ ./frontend/
+RUN cd frontend && npm install && npm run build
 
 
 # ---------- 2. Flask backend + copy React build ----------
@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # Copy built frontend from previous stage
-COPY --from=frontend /app/dist ./build
+COPY --from=frontend /app/frontend/dist ./build
 
 EXPOSE 5000
 CMD ["python", "flask_ocr_service.py"]
