@@ -13,26 +13,27 @@ from pymongo import MongoClient
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
-# Carga .env
+# Load environment variables
 load_dotenv()
 
+# Use build/ for static files
 app = Flask(__name__, static_folder="build", static_url_path="/")
 
-# Genera una nueva clave secreta para cada inicio:
+# Secret key for session
 app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
-CORS(app, supports_credentials=True, origins=["*"])
+CORS(
+    app, supports_credentials=True, origins=["*"]
+)  # Public frontend now served from same host
 
-# Carpeta de uploads
-UPLOAD_FOLER = "uploads"
-os.makedirs(UPLOAD_FOLER, exist_ok=True)
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# MongoDB
+# Mongo connection
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/albaranesdb")
 client = MongoClient(mongo_uri)
 db = client.get_default_database()
 albaranes = db["albaranes"]
 
-# Usuarios autorizados
 USUARIOS = {
     "26649110E": generate_password_hash("admin"),
 }
@@ -84,7 +85,7 @@ def extract_albaran():
     resultados = []
     for f in archivos:
         filename = secure_filename(f.filename)
-        pdf_path = Path(UPLOAD_FOLER) / filename
+        pdf_path = Path(UPLOAD_FOLDER) / filename
         f.save(pdf_path)
 
         try:
@@ -123,17 +124,17 @@ def get_albaranes():
         albaranes.find({}, {"_id": 1, "albaranId": 1,
                        "filename": 1, "timestamp": 1})
     )
-    result = []
-    for doc in docs:
-        result.append(
+    return jsonify(
+        [
             {
-                "id": str(doc["_id"]),
-                "albaranId": doc["albaranId"],
-                "filename": doc["filename"],
-                "timestamp": doc["timestamp"].isoformat(),
+                "id": str(d["_id"]),
+                "albaranId": d["albaranId"],
+                "filename": d["filename"],
+                "timestamp": d["timestamp"].isoformat(),
             }
-        )
-    return jsonify(result)
+            for d in docs
+        ]
+    )
 
 
 @app.route("/api/albaranes/<string:albaran_id>", methods=["DELETE"])
@@ -141,37 +142,27 @@ def get_albaranes():
 def delete_albaran(albaran_id):
     from bson import ObjectId
 
-    logging.info(f"📌 DELETE request for albaran_id={albaran_id!r}")
-
-    # Show all IDs currently in the collection
-    all_ids = [str(d["_id"]) for d in albaranes.find({}, {"_id": 1})]
-    logging.info(f"🔍 Existing IDs in DB: {all_ids}")
-
     try:
         oid = ObjectId(albaran_id)
-    except Exception:
-        logging.warning(f"❌ Invalid ObjectId: {albaran_id!r}")
+    except:
         return jsonify({"error": "ID inválido"}), 400
 
     doc = albaranes.find_one({"_id": oid})
     if not doc:
-        logging.warning(f"⚠️ No document found for _id={albaran_id!r}")
         return jsonify({"error": "No encontrado"}), 404
 
-    # Delete from Mongo + disk
     albaranes.delete_one({"_id": oid})
-    file_path = Path(UPLOAD_FOLER) / doc["filename"]
+    file_path = Path(UPLOAD_FOLDER) / doc["filename"]
     if file_path.exists():
         file_path.unlink()
 
-    logging.info(f"✅ Deleted albaran_id={albaran_id!r}")
     return jsonify({"msg": "Eliminado correctamente"})
 
 
 @app.route("/uploads/<path:filename>")
 @auth_required
 def serve_upload(filename):
-    return send_from_directory(UPLOAD_FOLER, filename)
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 
 # ------------------------
@@ -193,16 +184,14 @@ def extract_text_from_pdf(pdf_path):
     full_text = ""
     for img in images:
         gray = img.convert("L")
-        thresholded = gray.point(lambda x: 0 if x < 128 else 255, "1")
-        page_text = pytesseract.image_to_string(thresholded, config="--psm 6")
-        full_text += page_text
+        binary = gray.point(lambda x: 0 if x < 128 else 255, "1")
+        full_text += pytesseract.image_to_string(binary, config="--psm 6")
     return full_text
 
 
 def extract_info(text):
-    # Mantener lógica de current_year = año de test - 1 si lo necesita
     current_year = datetime.now().year % 100 - 1
-    pattern = rf"\b(?:[A-Z]{{{1}}}{current_year}\d{{5}}|AA{current_year}\d{{4}})\b"
+    pattern = rf"\b(?:[A-Z]{1}{current_year}\d{{5}}|AA{current_year}\d{{4}})\b"
     match = re.search(pattern, text)
     return match.group() if match else None
 
