@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # Copy built frontend from previous stage
-COPY --from=frontend /app/frontend/dist ./build
+COPY --from=frontend /app/frontend/build ./build
 
 EXPOSE 5000
-CMD ["python", "flask_ocr_service.py"]
+CMD ["gunicorn", "flask_ocr_service:app", "--bind", "0.0.0.0:5000"]
