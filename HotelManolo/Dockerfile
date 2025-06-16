@@ -22,6 +22,7 @@ WORKDIR /app
 
 # Python deps
 COPY backend/requirements.txt .
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # App code
@@ -30,5 +31,4 @@ COPY backend/ .
 # Copy built frontend from previous stage
 COPY --from=frontend /app/frontend/build ./build
 
-EXPOSE 5000
-CMD ["gunicorn", "flask_ocr_service:app", "--bind", "0.0.0.0:5000"]
+CMD ["gunicorn", "flask_ocr_service:app", "--bind", "0.0.0.0:$PORT"]
