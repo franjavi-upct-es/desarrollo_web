@@ -1,6 +1,7 @@
 import { useState } from "react"
 import AuthLayout from "../../components/layouts/AuthLayout"
 import ProfilePhotoSelector from "../../inputs/ProfilePhotoSelector";
+import Input from "../../inputs/Input";
 
 const SignUp = () => {
   const [profilePic, setProfilePic] = useState(null);
@@ -45,7 +46,15 @@ const SignUp = () => {
           <form onSubmit={handleSignUp}>
             <ProfilePhotoSelector image={profilePic} setImage={setProfilePic} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                value={fullName}
+                onChange={({ target }) => setFullName(target.value)}
+                label="Nombre completo"
+                placeholder="Jhon"
+                type="text"
+              />
+            </div>
           </form>
         </div>
       </AuthLayout>

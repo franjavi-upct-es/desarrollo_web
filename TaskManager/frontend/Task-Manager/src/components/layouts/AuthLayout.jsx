@@ -1,4 +1,5 @@
 import UI_IMG from "../../assets/auth-img.jpg"
+import NeuroCore_IMG from "../../assets/Neurocore.jpeg"
 
 const AuthLayout = ({ children }) => {
   return <div className="flex">
@@ -8,7 +9,10 @@ const AuthLayout = ({ children }) => {
     </div>
 
     <div className="hidden md:flex w-[40vw] h-screen items-center justify-center bg-blue-50 bg-[url('/bg-img.jpg')] bg-cover bg-no-repeat bg-center overflow-hidden p-8">
-      <img src={UI_IMG} className="w-64 lg:w-[90%]" />
+      <div className="grid grid-rows-2">
+        <img src={NeuroCore_IMG} className="w-80 lg:w-[95%]" />
+        <img src={UI_IMG} className="w-80 lg:w-[95%]" />
+      </div>
     </div>
   </div>
 }

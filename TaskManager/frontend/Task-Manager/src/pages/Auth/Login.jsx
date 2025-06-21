@@ -2,6 +2,7 @@ import { useState } from "react";
 import AuthLayout from "../../components/layouts/AuthLayout";
 import { useNavigate, Link } from "react-router-dom";
 import { validateEmail } from "../../utils/helper";
+import Input from "../../inputs/Input";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -60,7 +61,7 @@ const Login = () => {
           <p className="text-[13px] text-slate-800 mt-3">
             ¿Aún no te has registrado?{" "}
           </p>
-          <Link className="font-medium text-primary underline" to="/signUp">
+          <Link className="font-medium text-primary underline" to="/signup">
             Regístrate
           </Link>
         </form>
