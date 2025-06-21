@@ -1,6 +1,10 @@
+import AuthLayout from "../../components/layouts/AuthLayout"
+
 const Login = () => {
   return (
-    <div>Login</div>
+    <AuthLayout>
+      Login
+    </AuthLayout>
   )
 }
 
