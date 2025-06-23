@@ -30,8 +30,6 @@ COPY backend/ .
 # Copy built frontend from previous stage
 COPY --from=frontend /app/frontend/build ./build
 
-COPY backend/.env .env
-
 # Set environment variables
 ENV PORT=5001
 ENV FLASK_ENV=production
