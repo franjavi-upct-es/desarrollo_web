@@ -163,6 +163,12 @@ def serve_upload(filename):
     return send_from_directory(UPLOAD_FOLER, filename)
 
 
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.pop("user", None)
+    return jsonify({"msg": "Logout exitoso"})
+
+
 def extract_text_from_pdf(pdf_path):
     images = convert_from_path(str(pdf_path), dpi=300)
     full_text = ""
