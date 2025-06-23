@@ -31,11 +31,11 @@ COPY backend/ .
 COPY --from=frontend /app/frontend/build ./build
 
 # Set environment variables
-ENV PORT=5001
+# Do not set a fixed PORT, let Render provide it
 ENV FLASK_ENV=production
 
-# Expose the port
-EXPOSE 5001
+# Expose the port Render expects (default is 10000, but $PORT is set automatically)
+EXPOSE 10000
 
-# Start the app with Gunicorn
-CMD ["gunicorn", "flask_ocr_service:app", "--bind", "0.0.0.0:5001"]
+# Start the app with Gunicorn, binding to the port provided by Render
+CMD ["gunicorn", "flask_ocr_service:app", "--bind", "0.0.0.0:${PORT}"]
