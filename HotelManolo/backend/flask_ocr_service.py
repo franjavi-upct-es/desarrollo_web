@@ -169,6 +169,17 @@ def logout():
     return jsonify({"msg": "Logout exitoso"})
 
 
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    build_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "./build")
+    file_path = os.path.join(build_dir, path)
+    if path != "" and os.path.exists(file_path):
+        return send_from_directory(build_dir, path)
+    else:
+        return send_from_directory(build_dir, "index.html")
+
+
 def extract_text_from_pdf(pdf_path):
     images = convert_from_path(str(pdf_path), dpi=300)
     full_text = ""

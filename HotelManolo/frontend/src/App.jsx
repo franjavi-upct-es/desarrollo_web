@@ -6,7 +6,7 @@ import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import ManageAlbaranes from "./components/ManageAlbaranes";
 
-axios.defaults.baseURL = "/api";
+// Remove baseURL so all requests are relative to the current domain
 axios.defaults.withCredentials = true;
 
 export default function App() {
