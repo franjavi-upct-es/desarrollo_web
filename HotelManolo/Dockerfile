@@ -38,4 +38,4 @@ ENV FLASK_ENV=production
 EXPOSE 10000
 
 # Start the app with Gunicorn, binding to the port provided by Render
-CMD ["gunicorn", "flask_ocr_service:app", "--bind", "0.0.0.0:${PORT}"]
+CMD ["sh", "-c", "exec gunicorn flask_ocr_service:app --bind 0.0.0.0:$PORT"]
