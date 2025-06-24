@@ -172,7 +172,7 @@ def logout():
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):
-    build_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "./build")
+    build_dir = os.path.join(os.getcwd(), "frontend", "build")
     file_path = os.path.join(build_dir, path)
     if path != "" and os.path.exists(file_path):
         return send_from_directory(build_dir, path)
@@ -200,4 +200,4 @@ def extract_info(text):
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5000)
