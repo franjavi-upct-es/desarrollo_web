@@ -1,8 +1,12 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import AuthLayout from "../../components/layouts/AuthLayout"
 import ProfilePhotoSelector from "../../inputs/ProfilePhotoSelector";
 import Input from "../../inputs/Input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axiosInstance from "../../utils/axiosInstance";
+import { API_PATHS } from "../../utils/apiPaths";
+import { UserContext } from '../../context/userContext';
+import uploadImage from "../../utils/uploadImage";
 
 const SignUp = () => {
   const [profilePic, setProfilePic] = useState(null);
@@ -10,12 +14,16 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [adminInviteToken, setAdminInviteToken] = useState("");
-
   const [error, setError] = useState(null);
+
+  const { updateUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
   // Handle Sign Up Form Submit
   const handleSignUp = async (e) => {
     e.preventeDefault();
+
+    let profileImageUrl = ''
 
     if (!fullName) {
       setError("Por favor, introduce tu nombre completo")
@@ -35,6 +43,41 @@ const SignUp = () => {
     setError("");
 
     // SignUp API Call
+    try {
+
+      // Upload image if present 
+      if (profilePic) {
+        const imgUploadRes = await uploadImage(profilePic);
+        profileImageUrl = imgUploadRes.imageUrl || "";
+      }
+
+      const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER, {
+        name: fullName,
+        email,
+        password,
+        adminInviteToken
+      });
+
+      const { token, role } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        updateUser(response.data)
+
+        // Redirect based on role
+        if (role == "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/user/dashboard");
+        }
+      }
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Algo ha ocurrido. Por favor, intentálo de nuevo");
+      }
+    }
   };
 
   return (
@@ -75,7 +118,7 @@ const SignUp = () => {
 
             <Input
               value={password}
-              onChange={({ target }) => setPassword(target.value)}
+              onChange={({ target }) => setAdminInviteToken(target.value)}
               label="Admin Token"
               placeholder="Código de 6 Dígitos"
               type="text"

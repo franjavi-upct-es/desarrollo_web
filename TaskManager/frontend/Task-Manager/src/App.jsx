@@ -2,6 +2,8 @@ import {
   Route,
   BrowserRouter as Router,
   Routes,
+  Navigate,
+  Outlet
 } from 'react-router-dom';
 import CreateTask from './pages/Admin/CreateTask';
 import Dashboard from './pages/Admin/Dashboard';
@@ -39,10 +41,10 @@ const App = () => {
               <Route path='/user/my-tasks' element={<MyTasks />} />
               <Route path='/user/tasks-details/:id' element={<ViewTaskDetails />} />
             </Route>
-          </Routes>
 
-          {/*Default Route*/}
-          <Route path='/' element={<Root />} />
+            {/*Default Route*/}
+            <Route path='/' element={<Root />} />
+          </Routes>
         </Router>
       </div>
     </UserProvider>
