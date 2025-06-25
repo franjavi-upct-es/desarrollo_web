@@ -9,7 +9,7 @@ export default function Dashboard({ onLogout }) {
 
   const fetchAlbaranes = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/albaranes", { withCredentials: true });
+      const res = await axios.get("/albaranes", { withCredentials: true });
       setAlbaranes(res.data.reverse());
     } catch (err) {
       console.error(err);

@@ -1,0 +1,18 @@
+{
+  "name": "hotelmanolo-fullstack",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm start",
+    "dev:backend": "cd backend && npm start",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "copy:frontend": "rm -rf backend/frontend_build/* && cp -r frontend/build/* backend/frontend_build/",
+    "build": "npm run build:frontend && npm run copy:frontend",
+    "start": "npm run build && cd backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^7.3.0"
+  }
+}

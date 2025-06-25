@@ -75,14 +75,19 @@ export default function LoginPage({ onLogin }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    console.log('🔐 Frontend: Attempting login with:', user);
+    console.log('🌐 Frontend: Current URL:', window.location.href);
     try {
-      await axios.post(
-        "http://localhost:5001/login",
+      console.log('📤 Frontend: Sending login request to /login');
+      const response = await axios.post(
+        "/login",
         { username: user, password: pwd },
         { withCredentials: true }
       );
+      console.log('✅ Frontend: Login successful', response);
       onLogin();
-    } catch {
+    } catch (error) {
+      console.log('❌ Frontend: Login failed', error);
       setErr("Usuario o contraseña incorrectos");
     }
   };

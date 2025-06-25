@@ -2,12 +2,12 @@
   "name": "HotelManolo-gestos-facturas",
   "version": "1.0.0",
   "private": true,
-  "proxy": "http://localhost:5001",
+  "proxy": "http://localhost:5002",
   "scripts": {
-    "start": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
+    "start": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "react-scripts start",
-    "dev:backend": "cd ../backend && bash -c 'source flask_ocr/bin/activate && FLASK_APP=flask_ocr_service.py flask run --port=5001'",
-    "build": "react-scripts build && cd ../backend && python -m compileall ."
+    "dev:backend": "cd ../backend && npm start",
+    "build": "react-scripts build && cd ../backend && npm run build"
   },
   "dependencies": {
     "axios": "^0.27.2",

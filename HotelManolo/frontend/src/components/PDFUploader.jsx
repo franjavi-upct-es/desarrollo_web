@@ -11,38 +11,30 @@ const PDFUploader = ({ onSuccess }) => {
 
   const handleUpload = async () => {
     if (files.length === 0) return;
-
-    const formData = new FormData();
-    files.forEach(f => formData.append("pdf", f));
-
     setLoading(true);
-    try {
-      const res = await axios.post(
-        "http://localhost:5001/extract-albaran",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
-      const success = res.data.filter(r => !r.error);
-      const failed = res.data.filter(r => r.error);
-
-      if (success.length > 0) {
-        alert(`✅ ${success.length} albarán(es) procesado(s) correctamente.`);
-      }
-      if (failed.length > 0) {
-        alert(
-          `⚠️ ${failed.length} archivo(s) con error:\n` +
-          failed.map(f => `${f.filename}: ${f.error}`).join("\n")
+    let successCount = 0;
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("pdf", file);
+      try {
+        const res = await axios.post(
+          "/ocr",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
         );
+        if (res.data.albaranNumber) {
+          alert(`✅ ${file.name}: Albarán procesado: ${res.data.albaranNumber}`);
+        } else {
+          alert(`⚠️ ${file.name}: No se encontró número de albarán en el PDF`);
+        }
+        successCount++;
+      } catch (err) {
+        alert(`❌ ${file.name}: Error al procesar PDF`);
       }
-
-      onSuccess();
-      setFiles([]);
-    } catch {
-      alert("❌ Error general al procesar PDF(s)");
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
+    setFiles([]);
+    if (successCount > 0) onSuccess();
   };
 
   return (
@@ -63,7 +55,6 @@ const PDFUploader = ({ onSuccess }) => {
           </span>
         </label>
       </label>
-
       <button
         onClick={handleUpload}
         disabled={loading}

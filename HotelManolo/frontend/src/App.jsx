@@ -6,8 +6,9 @@ import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
 import ManageAlbaranes from "./components/ManageAlbaranes";
 
-// Remove baseURL so all requests are relative to the current domain
+// Use relative URLs for all API requests so they work with the same-origin backend
 axios.defaults.withCredentials = true;
+axios.defaults.baseURL = "";
 
 export default function App() {
   const [logged, setLogged] = useState(false);
@@ -24,7 +25,7 @@ export default function App() {
   // On mount, check session
   useEffect(() => {
     axios
-      .get("http://localhost:5001/albaranes")
+      .get("/albaranes")
       .then(() => {
         setLogged(true);
         // Only redirect to / if on /login or /
@@ -40,7 +41,7 @@ export default function App() {
   }, [navigate, location.pathname]);
 
   const handleLogout = () => {
-    axios.post("http://localhost:5001/logout").finally(() => {
+    axios.post("/logout").finally(() => {
       setLogged(false);
       navigate("/login", { replace: true });
     });

@@ -26,7 +26,7 @@ export default function ManageAlbaranes({ onLogout }) {
 
   const fetchAlbaranes = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/albaranes", { withCredentials: true });
+      const res = await axios.get("/albaranes", { withCredentials: true });
       setAlbaranes(res.data.reverse());
     } catch {
       console.error("Error cargando albaranes");
@@ -55,7 +55,7 @@ export default function ManageAlbaranes({ onLogout }) {
     if (!confirm(`Eliminar ${selected.size} albarán(es)?`)) return;
     for (let id of selected) {
       try {
-        await axios.delete(`http://localhost:5001/albaranes/${id}`, { withCredentials: true });
+        await axios.delete(`/albaranes/${id}`, { withCredentials: true });
       } catch (e) {
         console.error("Error deleting", id, e);
       }
