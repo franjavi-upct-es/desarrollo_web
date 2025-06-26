@@ -3,6 +3,7 @@ import axios from "axios";
 import MainLayout from "./MainLayout";
 import { FaRegEye } from "react-icons/fa";
 import AlbaranModal from "./AlbaranModal";
+import { toast } from "react-toastify";
 
 const months = [
   "Enero", "Febrero", "Marzo", "Abril",
@@ -16,7 +17,6 @@ export default function ManageAlbaranes({ onLogout }) {
   const [monthFilter, setMonthFilter] = useState("all");
   const [selected, setSelected] = useState(new Set());
 
-  // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [current, setCurrent] = useState(null);
 
@@ -45,21 +45,42 @@ export default function ManageAlbaranes({ onLogout }) {
   });
 
   const toggleSelect = id => {
-    const s = new Set(selected);
-    s.has(id) ? s.delete(id) : s.add(id);
-    setSelected(s);
+    const newSet = new Set(selected);
+    newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+    setSelected(newSet);
+  };
+
+  const toggleSelectAll = checked => {
+    if (checked) {
+      const allIds = filtered.map(a => a._id);
+      setSelected(new Set(allIds));
+    } else {
+      setSelected(new Set());
+    }
   };
 
   const deleteSelected = async () => {
-    if (selected.size === 0) return alert("Selecciona al menos uno");
-    if (!confirm(`Eliminar ${selected.size} albarán(es)?`)) return;
-    for (let id of selected) {
-      try {
-        await axios.delete(`/albaranes/${id}`, { withCredentials: true });
-      } catch (e) {
-        console.error("Error deleting", id, e);
-      }
-    }
+    if (selected.size === 0) return toast.info("Selecciona al menos un albarán");
+
+    if (!confirm(`¿Eliminar ${selected.size} albarán(es)?`)) return;
+
+    let success = 0;
+    let fail = 0;
+
+    await Promise.all(
+      Array.from(selected).map(async id => {
+        try {
+          await axios.delete(`/albaranes/${id}`, { withCredentials: true });
+          success++;
+        } catch {
+          fail++;
+        }
+      })
+    );
+
+    if (success > 0) toast.success(`${success} eliminado(s)`);
+    if (fail > 0) toast.error(`${fail} fallido(s)`);
+
     setSelected(new Set());
     fetchAlbaranes();
   };
@@ -67,6 +88,7 @@ export default function ManageAlbaranes({ onLogout }) {
   return (
     <MainLayout onLogout={onLogout} onUploadSuccess={fetchAlbaranes}>
       <h2 className="text-3xl font-bold text-center">Gestión Avanzada</h2>
+
       {/* Filters */}
       <div className="flex flex-wrap space-x-4 mb-4 dark:text-black">
         <select
@@ -107,29 +129,24 @@ export default function ManageAlbaranes({ onLogout }) {
               <th className="p-2">
                 <input
                   type="checkbox"
-                  onChange={e => {
-                    if (e.target.checked) {
-                      setSelected(new Set(filtered.map(a => a.id)));
-                    } else {
-                      setSelected(new Set());
-                    }
-                  }}
+                  onChange={e => toggleSelectAll(e.target.checked)}
                   checked={filtered.length > 0 && selected.size === filtered.length}
                 />
               </th>
               <th className="p-2 text-left">Archivo</th>
               <th className="p-2 text-left">ID</th>
               <th className="p-2 text-left">Fecha subida</th>
+              <th className="p-2 text-center">Ver</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(a => (
-              <tr key={a.id} className="border-b hover:bg-gray-100 dark:hover:bg-gray-700">
+              <tr key={a._id} className="border-b hover:bg-gray-100 dark:hover:bg-gray-700">
                 <td className="p-2">
                   <input
                     type="checkbox"
-                    checked={selected.has(a.id)}
-                    onChange={() => toggleSelect(a.id)}
+                    checked={selected.has(a._id)}
+                    onChange={() => toggleSelect(a._id)}
                   />
                 </td>
                 <td className="p-2">{a.filename}</td>
@@ -154,6 +171,7 @@ export default function ManageAlbaranes({ onLogout }) {
         </table>
       </div>
 
+      {/* Modal */}
       {modalOpen && current && (
         <AlbaranModal
           albaran={current}

@@ -45,7 +45,7 @@ export default function AlbaranList({
   const handleDelete = async (id, filename) => {
     try {
       await axios.delete(
-        `http://localhost:5001/albaranes/${id}`,
+        `/albaranes/${id}`,
         { withCredentials: true }
       );
       alert("✅ Albarán eliminado");
@@ -99,7 +99,7 @@ export default function AlbaranList({
       <ConfirmModal
         open={!!deletePending}
         filename={deletePending?.filename}
-        onConfirm={() => handleDelete(deletePending.id, deletePending.filename)}
+        onConfirm={() => handleDelete(deletePending?._id, deletePending?.filename)}
         onCancel={() => setDeletePending(null)}
       />
     </div>

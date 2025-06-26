@@ -52,3 +52,5 @@ uploads/
 __pychache__/
 *.pyc
 .env
+build/*
+frontend_build/*

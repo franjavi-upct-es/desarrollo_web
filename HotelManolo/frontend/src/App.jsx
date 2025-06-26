@@ -1,6 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
@@ -60,6 +62,7 @@ export default function App() {
         </button>
       </div>
 
+      <ToastContainer position="top-center" autoClose={100} />
       <Routes>
         {/* Public route */}
         <Route

@@ -1,16 +1,16 @@
 {
-  "name": "HotelManolo-gestos-facturas",
+  "name": "hotelmanolo-gestos-facturas",
   "version": "1.0.0",
   "private": true,
   "proxy": "http://localhost:5002",
   "scripts": {
-    "start": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "start": "react-scripts start",
     "dev:frontend": "react-scripts start",
     "dev:backend": "cd ../backend && npm start",
-    "build": "react-scripts build && cd ../backend && npm run build"
+    "build": "react-scripts build"
   },
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.10.0",
     "chart.js": "^3.9.1",
     "exceljs": "^4.3.0",
     "file-saver": "^2.0.5",
@@ -20,12 +20,13 @@
     "react-dom": "^18.2.0",
     "react-icons": "^4.4.0",
     "react-router-dom": "^7.6.2",
-    "react-scripts": "5.0.1"
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.7",
     "concurrently": "^7.3.0",
     "postcss": "^8.4.14",
+    "react-scripts": "^5.0.1",
     "tailwindcss": "^3.1.4"
   },
   "browserslist": {

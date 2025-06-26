@@ -9,14 +9,31 @@ const { PDFDocument } = require('pdf-lib');
 const { sessionMiddleware, verifyUser, addUser } = require('./auth');
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { Readable } = require('stream');
+
+const app = express();
+app.use(sessionMiddleware);
+
+const PORT = process.env.PORT || 5002;
+const FRONTEND_BUILD = path.join(__dirname, 'frontend_build');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    app.locals.bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+      bucketName: 'pdfs'
+    });
+  })
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Albaran Mongoose model
+// Multer memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Mongoose schema
 const AlbaranSchema = new mongoose.Schema({
+  pdfFileId: mongoose.Schema.Types.ObjectId,
   filename: String,
   albaranId: String,
   timestamp: { type: Date, default: Date.now },
@@ -24,54 +41,33 @@ const AlbaranSchema = new mongoose.Schema({
 });
 const Albaran = mongoose.model('Albaran', AlbaranSchema);
 
-const app = express();
-app.use(sessionMiddleware);
-
-const PORT = process.env.PORT || 5002;
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-const FRONTEND_BUILD = path.join(__dirname, 'frontend_build');
-
-// Ensure upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  },
-});
-const upload = multer({ storage });
-
+// Middleware
 function authRequired(req, res, next) {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'No autorizado' });
-  }
+  if (!req.session.user) return res.status(401).json({ error: 'No autorizado' });
   next();
 }
 
-function getPrevYear() {
-  return new Date().getFullYear() - 1;
-}
+// Utils
 function getPrevYearShort() {
-  return String(getPrevYear()).slice(-2);
+  return String(new Date().getFullYear() - 1).slice(-2);
 }
+
 function extractAlbaranNumber(text) {
   const yearShort = getPrevYearShort();
   const regex = new RegExp(`\\b(?:[A-Z]${yearShort}\\d{5}|AA${yearShort}\\d{4})\\b`);
   const match = text.match(regex);
   return match ? match[0] : null;
 }
+
 async function getPDFPageCount(pdfPath) {
   const data = fs.readFileSync(pdfPath);
   const pdfDoc = await PDFDocument.load(data);
   return pdfDoc.getPageCount();
 }
+
 async function extractTextFromPDF(pdfPath, outputDir) {
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+
   const convert = fromPath(pdfPath, {
     density: 300,
     saveFilename: 'pagina',
@@ -80,9 +76,11 @@ async function extractTextFromPDF(pdfPath, outputDir) {
     width: 1654,
     height: 2339,
   });
+
   const totalPages = await getPDFPageCount(pdfPath);
   let fullText = '';
   let albaranNumber = null;
+
   for (let i = 1; i <= totalPages; i++) {
     const { name } = await convert(i);
     const imagePath = path.join(outputDir, name);
@@ -91,29 +89,19 @@ async function extractTextFromPDF(pdfPath, outputDir) {
     albaranNumber = extractAlbaranNumber(result.data.text);
     if (albaranNumber) break;
   }
+
   return { fullText, albaranNumber };
 }
 
-// API routes first - before static file serving
+// Routes
+
 app.post('/login', express.json(), (req, res) => {
-  console.log('🔑 Login endpoint hit');
-  console.log('Request body:', req.body);
   const { username, password } = req.body;
-  console.log('Login attempt for username:', username);
-  console.log('Password provided:', password ? 'YES' : 'NO');
-  console.log('Session before login:', req.session);
-  console.log('Headers:', req.headers);
-  
   const isValid = verifyUser(username, password);
-  console.log('Verification result:', isValid);
-  
   if (isValid) {
     req.session.user = username;
-    console.log('✅ Login successful for:', username);
-    console.log('Session after login:', req.session);
     return res.json({ msg: 'Login exitoso' });
   }
-  console.log('❌ Login failed for:', username);
   res.status(403).json({ error: 'Credenciales incorrectas' });
 });
 
@@ -123,11 +111,13 @@ app.post('/logout', (req, res) => {
   });
 });
 
-// Add missing albaranes endpoints for frontend compatibility
 app.get('/albaranes', authRequired, async (req, res) => {
   try {
     const albaranes = await Albaran.find().sort({ timestamp: -1 });
-    res.json(albaranes);
+    res.json(albaranes.map(a => ({
+      ...a.toObject(),
+      pdfFileId: a.pdfFileId ? a.pdfFileId.toString() : null
+    })));
   } catch (err) {
     res.status(500).json({ error: 'Error fetching albaranes' });
   }
@@ -136,52 +126,90 @@ app.get('/albaranes', authRequired, async (req, res) => {
 app.delete('/albaranes/:id', authRequired, async (req, res) => {
   try {
     const albaran = await Albaran.findByIdAndDelete(req.params.id);
-    if (albaran) {
-      const filePath = path.join(UPLOAD_DIR, albaran.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-      res.json({ msg: 'Eliminado correctamente' });
-    } else {
-      res.status(404).json({ error: 'Albarán no encontrado' });
+    if (albaran && albaran.pdfFileId) {
+      try {
+        await req.app.locals.bucket.delete(albaran.pdfFileId);
+      } catch {}
     }
-  } catch (err) {
+    res.json({ msg: 'Eliminado correctamente' });
+  } catch {
     res.status(500).json({ error: 'Error deleting albarán' });
   }
 });
 
-// Serve uploads
-app.use('/uploads', authRequired, express.static(UPLOAD_DIR));
+// ✔️ PDF Endpoint - Mover arriba del fallback
+app.get('/uploads/:id', authRequired, (req, res) => {
+  try {
+    const _id = new mongoose.Types.ObjectId(req.params.id);
+    res.set('Content-Type', 'application/pdf');
+    req.app.locals.bucket.openDownloadStream(_id).pipe(res);
+  } catch {
+    res.status(404).end();
+  }
+});
+
+// OCR Endpoint
+app.post('/ocr', authRequired, upload.single('pdf'), async (req, res) => {
+  const bucket = req.app.locals.bucket;
+  if (!bucket) return res.status(500).json({ error: 'GridFS bucket not initialized' });
+
+  const readable = new Readable();
+  readable.push(req.file.buffer);
+  readable.push(null);
+
+  const uploadStream = bucket.openUploadStream(req.file.originalname, {
+    contentType: req.file.mimetype
+  });
+
+  readable.pipe(uploadStream)
+    .on('error', err => res.status(500).json({ error: err.message }))
+    .on('finish', async () => {
+      const fileId = uploadStream.id;
+      const tempPath = path.join('/tmp', `${fileId.toString()}-${req.file.originalname}`);
+      const tempOutput = path.join('/tmp', 'output_' + Date.now());
+
+      fs.writeFileSync(tempPath, req.file.buffer);
+
+      try {
+        const { fullText, albaranNumber } = await extractTextFromPDF(tempPath, tempOutput);
+        const albaran = await Albaran.create({
+          pdfFileId: fileId,
+          filename: req.file.originalname,
+          albaranId: albaranNumber,
+          text: fullText,
+          timestamp: new Date()
+        });
+
+        fs.rmSync(tempOutput, { recursive: true, force: true });
+        fs.unlinkSync(tempPath);
+
+        res.json({ albaranNumber, text: fullText, albaran });
+      } catch (err) {
+        fs.rmSync(tempOutput, { recursive: true, force: true });
+        fs.unlinkSync(tempPath);
+        res.status(500).json({ error: err.message });
+      }
+    });
+});
 
 // Serve frontend static files
 app.use(express.static(FRONTEND_BUILD));
 
-// Fallback to index.html for SPA (must be last!)
+// SPA fallback – debe ir al final
 app.get('*', (req, res) => {
+  if (
+    req.path.startsWith('/api') ||
+    req.path.startsWith('/uploads') ||
+    req.path.startsWith('/login') ||
+    req.path.startsWith('/logout') ||
+    req.path.startsWith('/ocr') ||
+    req.path.startsWith('/albaranes')
+  ) {
+    return res.status(404).json({ error: 'Not found' });
+  }
   res.sendFile(path.join(FRONTEND_BUILD, 'index.html'));
 });
 
-// Protect OCR, uploads, and all API endpoints
-app.post('/ocr', authRequired, upload.single('pdf'), async (req, res) => {
-  const pdfPath = req.file.path;
-  const tempOutput = path.join(UPLOAD_DIR, 'output_temp_' + Date.now());
-  try {
-    const { fullText, albaranNumber } = await extractTextFromPDF(pdfPath, tempOutput);
-    // Save the albaran info to MongoDB
-    const albaran = await Albaran.create({
-      filename: req.file.filename,
-      albaranId: albaranNumber,
-      text: fullText,
-      timestamp: new Date()
-    });
-    if (fs.existsSync(tempOutput)) fs.rmSync(tempOutput, { recursive: true, force: true });
-    res.json({ albaranNumber, text: fullText, albaran });
-  } catch (err) {
-    if (fs.existsSync(tempOutput)) fs.rmSync(tempOutput, { recursive: true, force: true });
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.listen(PORT, () => {
-  console.log(`OCR backend running on port ${PORT}`);
+  console.log(`🚀 OCR backend running on port ${PORT}`);
 });

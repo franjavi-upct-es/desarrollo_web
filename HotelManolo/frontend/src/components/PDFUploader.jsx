@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const PDFUploader = ({ onSuccess }) => {
   const [files, setFiles] = useState([]);
@@ -12,7 +13,10 @@ const PDFUploader = ({ onSuccess }) => {
   const handleUpload = async () => {
     if (files.length === 0) return;
     setLoading(true);
+
     let successCount = 0;
+    let failCount = 0;
+
     for (const file of files) {
       const formData = new FormData();
       formData.append("pdf", file);
@@ -20,21 +24,34 @@ const PDFUploader = ({ onSuccess }) => {
         const res = await axios.post(
           "/ocr",
           formData,
-          { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+          }
         );
         if (res.data.albaranNumber) {
-          alert(`✅ ${file.name}: Albarán procesado: ${res.data.albaranNumber}`);
+          successCount++;
         } else {
-          alert(`⚠️ ${file.name}: No se encontró número de albarán en el PDF`);
+          failCount++;
+          toast.warning(`⚠️ ${file.name}: No se encontró número de albarán`);
         }
-        successCount++;
       } catch (err) {
-        alert(`❌ ${file.name}: Error al procesar PDF`);
+        failCount++;
+        toast.error(`❌ ${file.name}: Error al procesar`);
       }
     }
+
     setLoading(false);
     setFiles([]);
-    if (successCount > 0) onSuccess();
+
+    // Resumen final
+    if (successCount > 0) {
+      toast.success(`✅ ${successCount} albarán(es) procesado(s)`);
+      onSuccess(); // solo si hubo alguno exitoso
+    }
+    if (failCount > 0) {
+      toast.error(`❌ ${failCount} archivo(s) fallaron`);
+    }
   };
 
   return (
