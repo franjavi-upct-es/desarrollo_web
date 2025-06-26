@@ -1,41 +1,29 @@
-# ---------- 1. Build React frontend ----------
-FROM node:18 AS frontend
+# Etapa 1: Build del frontend
+FROM node:18 as frontend
 
-WORKDIR /app
-COPY ./frontend/package*.json ./frontend/
-COPY ./frontend/ ./frontend/
-RUN cd frontend && npm install && npm run build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-
-# ---------- 2. Flask backend + copy React build ----------
-FROM python:3.10-slim AS backend
-
-# Install OCR & image tools
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    poppler-utils \
-    libgl1 \
-    && rm -rf /var/lib/apt/lists/*
+# Etapa 2: Backend + frontend
+FROM node:18
 
 WORKDIR /app
 
-# Copy Python dependencies
-COPY backend/requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalar backend deps
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install
 
-# Copy backend code
-COPY backend/ .
+# Copiar código backend y build del frontend
+COPY backend ./backend
+COPY --from=frontend /app/frontend/build ./backend/frontend_build
 
-# Copy built frontend from previous stage
-COPY --from=frontend /app/frontend/build ./build
+WORKDIR /app/backend
 
-# Set environment variables
-# Do not set a fixed PORT, let Render provide it
-ENV FLASK_ENV=production
+ENV PORT=5002
+EXPOSE 5002
 
-# Expose the port Render expects (default is 10000, but $PORT is set automatically)
-EXPOSE 10000
-
-# Start the app with Gunicorn, binding to the port provided by Render
-CMD ["sh", "-c", "exec gunicorn flask_ocr_service:app --bind 0.0.0.0:$PORT"]
+# ⬇️ Aquí estaba el error
+CMD ["node", "ocr_service.js"]
