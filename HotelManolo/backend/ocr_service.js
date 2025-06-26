@@ -139,7 +139,7 @@ app.delete('/albaranes/:id', authRequired, async (req, res) => {
   }
 });
 
-app.get('/uploads/:id', authRequired, (req, res) => {
+app.get('/uploads/:id', (req, res) => {
   try {
     const _id = new mongoose.Types.ObjectId(req.params.id);
     res.set('Content-Type', 'application/pdf');
