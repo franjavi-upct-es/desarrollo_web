@@ -1,29 +1,39 @@
-# Etapa 1: Build del frontend
-FROM node:18 as frontend
-
+# Stage 1: Build frontend
+FROM node:18-alpine AS frontend
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
-COPY frontend/ .
+COPY frontend .
 RUN npm run build
 
-# Etapa 2: Backend + frontend
-FROM node:18
+# Stage 2: Backend + frontend
+FROM node:18-alpine
+
+# Instalamos gm y dependencies necesarias para pdf2pic
+RUN apk add --no-cache \
+  graphicsmagick \
+  ghostscript \
+  ttf-freefont \
+  libc6-compat \
+  bash \
+  python3 \
+  make \
+  g++ \
+  cairo-dev \
+  jpeg-dev \
+  pango-dev \
+  giflib-dev \
+  libjpeg-turbo-dev \
+  pixman-dev \
+  libpng-dev \
+  musl-dev
 
 WORKDIR /app
-
-# Instalar backend deps
-COPY backend/package*.json ./backend/
-RUN cd backend && npm install
-
-# Copiar código backend y build del frontend
 COPY backend ./backend
 COPY --from=frontend /app/frontend/build ./backend/frontend_build
 
 WORKDIR /app/backend
+RUN npm install
 
-ENV PORT=5002
-EXPOSE 5002
-
-# ⬇️ Aquí estaba el error
+EXPOSE 10000
 CMD ["node", "ocr_service.js"]
