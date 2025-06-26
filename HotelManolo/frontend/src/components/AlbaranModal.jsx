@@ -41,10 +41,10 @@ export default function AlbaranModal({ albaran, onClose }) {
         {/* Tab: Preview */}
         {tab === "preview" && (
           <div className="space-y-2">
-            {pdfUrl ? (
+            {albaran?.pdfFileId ? (
               <>
                 <a
-                  href={pdfUrl}
+                  href={`https://hotel-manolo-ocr.onrender.com/uploads/${albaran.pdfFileId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline"
@@ -53,7 +53,7 @@ export default function AlbaranModal({ albaran, onClose }) {
                 </a>
                 <div className="h-96 border rounded overflow-hidden">
                   <iframe
-                    src={pdfUrl}
+                    src={`https://hotel-manolo-ocr.onrender.com/uploads/${albaran.pdfFileId}`}
                     className="w-full h-full"
                     title="PDF Preview"
                   />
