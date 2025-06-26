@@ -3,40 +3,37 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const Tesseract = require('tesseract.js');
 const { fromPath } = require('pdf2pic');
 const { PDFDocument } = require('pdf-lib');
-const { sessionMiddleware, verifyUser } = require('./auth');
+const { sessionMiddleware, verifyUser, addUser } = require('./auth');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const { Readable } = require('stream');
-const helmet = require('helmet');
 
 const app = express();
 app.use(sessionMiddleware);
-app.use(helmet());
 
 const PORT = process.env.PORT || 5002;
 const FRONTEND_BUILD = path.join(__dirname, 'frontend_build');
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-    app.locals.bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-      bucketName: 'pdfs'
-    });
-  })
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1); // Detiene el contenedor para reinicio en Render
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('✅ Connected to MongoDB');
+  app.locals.bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+    bucketName: 'pdfs'
   });
+}).catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Memory storage para PDF
+// Multer memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Mongoose model
+// Mongoose schema
 const AlbaranSchema = new mongoose.Schema({
   pdfFileId: mongoose.Schema.Types.ObjectId,
   filename: String,
@@ -46,13 +43,13 @@ const AlbaranSchema = new mongoose.Schema({
 });
 const Albaran = mongoose.model('Albaran', AlbaranSchema);
 
-// Auth middleware
+// Middleware auth
 function authRequired(req, res, next) {
   if (!req.session.user) return res.status(401).json({ error: 'No autorizado' });
   next();
 }
 
-// Extrae número de albarán (ej. A2400944)
+// Utils
 function getPrevYearShort() {
   return String(new Date().getFullYear() - 1).slice(-2);
 }
@@ -64,7 +61,6 @@ function extractAlbaranNumber(text) {
   return match ? match[0] : null;
 }
 
-// PDF parsing y OCR
 async function getPDFPageCount(pdfPath) {
   const data = fs.readFileSync(pdfPath);
   const pdfDoc = await PDFDocument.load(data);
@@ -99,11 +95,7 @@ async function extractTextFromPDF(pdfPath, outputDir) {
   return { fullText, albaranNumber };
 }
 
-// ROUTES
-
-app.get('/health', (req, res) => {
-  res.send('✅ Backend running');
-});
+// Routes
 
 app.post('/login', express.json(), (req, res) => {
   const { username, password } = req.body;
@@ -170,15 +162,19 @@ app.post('/ocr', authRequired, upload.single('pdf'), async (req, res) => {
   });
 
   readable.pipe(uploadStream)
-    .on('error', err => res.status(500).json({ error: err.message }))
+    .on('error', err => {
+      console.error("UploadStream error:", err);
+      return res.status(500).json({ error: err.message });
+    })
     .on('finish', async () => {
       const fileId = uploadStream.id;
-      const tempPath = path.join('/tmp', `${fileId.toString()}-${req.file.originalname}`);
-      const tempOutput = path.join('/tmp', 'output_' + Date.now());
+      const tempPath = path.join(os.tmpdir(), `${fileId}-${req.file.originalname}`);
+      const tempOutput = path.join(os.tmpdir(), `output_${Date.now()}`);
 
       try {
         fs.writeFileSync(tempPath, req.file.buffer);
         const { fullText, albaranNumber } = await extractTextFromPDF(tempPath, tempOutput);
+
         const albaran = await Albaran.create({
           pdfFileId: fileId,
           filename: req.file.originalname,
@@ -187,22 +183,20 @@ app.post('/ocr', authRequired, upload.single('pdf'), async (req, res) => {
           timestamp: new Date()
         });
 
-        fs.rmSync(tempOutput, { recursive: true, force: true });
-        fs.unlinkSync(tempPath);
-
         res.json({ albaranNumber, text: fullText, albaran });
       } catch (err) {
-        fs.rmSync(tempOutput, { recursive: true, force: true });
-        fs.unlinkSync(tempPath);
+        console.error("OCR processing error:", err);
         res.status(500).json({ error: err.message });
+      } finally {
+        try { fs.rmSync(tempOutput, { recursive: true, force: true }); } catch (_) {}
+        try { fs.unlinkSync(tempPath); } catch (_) {}
       }
     });
 });
 
-// Serve frontend React build
+// Serve frontend
 app.use(express.static(FRONTEND_BUILD));
 
-// Fallback para SPA
 app.get('*', (req, res) => {
   if (
     req.path.startsWith('/api') ||
