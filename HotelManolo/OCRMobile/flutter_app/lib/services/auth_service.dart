@@ -23,7 +23,7 @@ class AuthService {
   Future<void> logout() async {
     await http.post(Uri.parse('$baseUrl/logout'));
     final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('loggedIn', true);
+    prefs.setBool('loggedIn', false);
   }
 
   Future<bool> isLoggedIn() async {

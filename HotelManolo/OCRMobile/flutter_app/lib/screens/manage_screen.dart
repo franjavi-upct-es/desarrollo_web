@@ -1,12 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 
-import '../config/constants.dart';
+import '../services/auth_service.dart';
+import '../services/albaran_service.dart';
 import 'pdf_view_screen.dart';
 
 class ManageScreen extends StatefulWidget {
@@ -17,6 +14,9 @@ class ManageScreen extends StatefulWidget {
 }
 
 class _ManageScreenState extends State<ManageScreen> {
+  final AuthService authService = AuthService();
+  final AlbaranService albaranService = AlbaranService();
+
   List albaranes = [];
   Set<String> selected = {};
   String? year;
@@ -25,34 +25,29 @@ class _ManageScreenState extends State<ManageScreen> {
   @override
   void initState() {
     super.initState();
-    fetchAlbaranes();
+    _loadAlbaranes();
   }
 
-  Future<void> fetchAlbaranes() async {
+  Future<void> _loadAlbaranes() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/albaranes'));
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        setState(() => albaranes = data);
-      }
+      final data = await albaranService.fetchAlbaranes();
+      setState(() => albaranes = data);
     } catch (_) {
       Fluttertoast.showToast(msg: 'Error cargando albaranes');
     }
   }
 
-  void _deleteSelected() async {
+  Future<void> _deleteSelected() async {
     for (final id in selected) {
-      await http.delete(Uri.parse('$baseUrl/albaranes/$id'));
+      await albaranService.deleteAlbaran(id);
     }
     Fluttertoast.showToast(msg: 'Albaranes eliminados');
     setState(() => selected.clear());
-    fetchAlbaranes();
+    _loadAlbaranes();
   }
 
-  void _logout() async {
-    await http.post(Uri.parse('$baseUrl/logout'));
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('loggedIn', false);
+  Future<void> _logout() async {
+    await authService.logout();
     if (mounted) context.go('/login');
   }
 
@@ -132,11 +127,12 @@ class _ManageScreenState extends State<ManageScreen> {
                   trailing: IconButton(
                     icon: const Icon(Icons.picture_as_pdf),
                     onPressed: () {
-                      final url = '$baseUrl/uploads/${a['pdfFileId']}';
+                      final url =
+                          'https://hotel-manolo-ocr.onrender.com/uploads/${a['pdfFileId']}';
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => PdfViewScreen(url: url),
+                          builder: (_) => PDFViewScreen(url: url),
                         ),
                       );
                     },
