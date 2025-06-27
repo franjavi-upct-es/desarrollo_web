@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
         body: jsonEncode({
           'username': userController.text,
           'password': passController.text,
-        });
+        })
       );
       
       if (response.statusCode == 200) {
