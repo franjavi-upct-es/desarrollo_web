@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,8 +14,9 @@ final GoRouter appRouter = GoRouter(
     final prefs = await SharedPreferences.getInstance();
     final loggedIn = prefs.getBool('loggedIn') ?? false;
 
-    if (!loggedIn && state.location != '/login') return '/login';
-    if (loggedIn && state.location == '/login') return '/manage';
+    // Utiliza state.matchedLocation en lugar de state.location
+    if (!loggedIn && state.matchedLocation != '/login') return '/login';
+    if (loggedIn && state.matchedLocation == '/login') return '/manage';
     return null;
   },
 );
