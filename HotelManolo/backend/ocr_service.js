@@ -175,6 +175,27 @@ app.post('/ocr', authRequired, upload.single('pdf'), async (req, res) => {
         fs.writeFileSync(tempPath, req.file.buffer);
         const { fullText, albaranNumber } = await extractTextFromPDF(tempPath, tempOutput);
 
+        // If no ID found, delete the PDF from GridFS and return error
+        if (!albaranNumber) {
+          try {
+            await bucket.delete(fileId);
+          } catch (deleteErr) {
+            console.error("Error removing file from GridFS:", deleteErr);
+          }
+          return res.status(400).json({ error: 'No ID found in PDF. File was not saved.' });
+        }
+
+        // If ID already exists, delete the PDF from GridFS and return error
+        const existingAlbaran = await Albaran.findOne({ albaranId: albaranNumber });
+        if (existingAlbaran) {
+          try {
+            await bucket.delete(fileId);
+          } catch (deleteErr) {
+            console.error("Error removing file from GridFS:", deleteErr);
+          }
+          return res.status(400).json({ error: 'This ID already exists. File was not saved.' });
+        }
+
         const albaran = await Albaran.create({
           pdfFileId: fileId,
           filename: req.file.originalname,

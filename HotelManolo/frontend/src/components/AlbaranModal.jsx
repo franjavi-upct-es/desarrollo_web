@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND || "http://localhost:5002";
+const BACKEND_URL = "http://localhost:5002" // || process.env.REACT_APP_BACKEND;
 
 export default function AlbaranModal({ albaran, onClose }) {
   const [tab, setTab] = useState("details");
