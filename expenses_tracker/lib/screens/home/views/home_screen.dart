@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(),
       bottomNavigationBar: ClipRRect(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
         child: BottomNavigationBar(
           backgroundColor: Colors.white,
           showSelectedLabels: false,
@@ -32,7 +32,7 @@ class HomeScreen extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton.large(
         onPressed: () {},
-        shape: CircleBorder(),
+        shape: const CircleBorder(),
         child: Container(
           width: 60,
           height: 60,
