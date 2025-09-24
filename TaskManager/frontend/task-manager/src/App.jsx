@@ -1,7 +1,7 @@
 import {
   Route,
   BrowserRouter as Router,
-  Routes
+  Routes, Navigate
 } from "react-router-dom";
 import CreateTask from "./pages/Admin/CreateTask";
 import Dashboard from "./pages/Admin/Dashboard";
@@ -18,6 +18,7 @@ const App = () => {
     <div>
       <Router>
         <Routes>
+          <Route path="/" element={<Root />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signUp" element={<SignUp />} />
 
@@ -41,3 +42,15 @@ const App = () => {
 }
 
 export default App
+
+const Root = () => {
+  // Comprueba si el token existe en localStorage
+  const isAuthenticated = !!localStorage.getItem("token");
+
+  // Redirección al dashboard si está verificado, sino al login
+  return isAuthenticated ? (
+    <Navigate to="/dashboard" />
+  ) : (
+    <Navigate to="/login" />
+  );
+};
