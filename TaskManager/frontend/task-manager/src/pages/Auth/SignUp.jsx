@@ -1,9 +1,13 @@
 import AuthLayout from "../../components/layouts/AuthLayout.jsx";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { validateEmail } from "../../utils/helper.js";
 import ProfilePhotoSelector from "../../components/Inputs/ProfilePhotoSelector.jsx";
 import Input from "../../components/Inputs/Input.jsx";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axiosInstance from "../../utils/axiosInstance.js";
+import { API_PATHS } from "../../utils/apiPaths.js";
+import { UserContext } from "../../context/userContext.jsx";
+import uploadImage from "../../utils/uploadImage.js";
 
 const SignUp = () => {
   const [profilePic, setProfilePic] = useState(null);
@@ -13,6 +17,8 @@ const SignUp = () => {
   const [adminInviteToken, setAdminInviteToken] = useState("");
 
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { updateUser } = useContext(UserContext);
 
   // Handle SignUp Form Submit
   const handleSignUp = async (e) => {
@@ -36,6 +42,41 @@ const SignUp = () => {
     setError("");
 
     // SignUp API Call
+    try {
+
+      // Upload image if present
+
+      if (profilePic) {
+        const imgUploadRes = await uploadImage(profilePic);
+        profileImageUrl = imgUploadRes.imageUrl || "";
+      }
+      const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER, {
+        name: fullName,
+        email,
+        password,
+        adminInviteToken,
+      });
+
+      const { token, role } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        updateUser(response.data);
+
+        // Redirect based on role
+        if (role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/user/dashboard");
+        }
+      }
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Algo ha ido mal. Por favor, inténtalo de nuevo.")
+      }
+    }
   };
 
   return (
@@ -73,7 +114,7 @@ const SignUp = () => {
             />
             <Input
               value={adminInviteToken}
-              onChange={({ target }) => setPassword(target.value)}
+              onChange={({ target }) => setAdminInviteToken(target.value)}
               label="Token de Administrador"
               placeholder="Cod. 6 dígitos"
               type="text"
@@ -97,6 +138,6 @@ const SignUp = () => {
       </div>
     </AuthLayout>
   )
-}
+};
 
 export default SignUp
